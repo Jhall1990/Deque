@@ -1,6 +1,5 @@
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Random;
 
 import edu.princeton.cs.algs4.StdRandom;
 
@@ -47,6 +46,13 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
         Item returnItem = randomDeque[randInt];
         randomDeque[randInt] = randomDeque[count - 1];
         randomDeque[--count] = null;
+
+        // See if the array usage is less than a quarter of the array.
+        // If it is reduce it's size by half.
+        if (count == randomDeque.length / 4) {
+            grow(randomDeque.length / 2);
+        }
+
         return returnItem;
     }
 
@@ -63,7 +69,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     private void grow(int capicity) {
         Item[] copy = (Item[]) new Object[capicity];
 
-        for (int i = 0; i < randomDeque.length; i++) {
+        for (int i = 0; i < count; i++) {
             copy[i] = randomDeque[i];
         }
 
@@ -76,59 +82,46 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
     }
 
     private class RandomizedQueueIterator implements Iterator<Item> {
-        Item[] randomQueueCopy;
-        int index;
+        Item[] randomDequeCopy;
+        int count;
 
         RandomizedQueueIterator() {
-            randomQueueCopy = (Item[]) new Object[count];
+            count = RandomizedQueue.this.count;
+            randomDequeCopy = (Item[]) new Object[count];
 
             for (int i = 0; i < count; i++) {
-                int randIndex = StdRandom.uniform(count);
-                while (randomQueueCopy[randIndex] != null) {
-                    randIndex = StdRandom.uniform(count);
-                }
-                randomQueueCopy[randIndex] = randomDeque[randIndex];
+                randomDequeCopy[i] = randomDeque[i];
             }
-            index = 0;
         }
 
         public boolean hasNext() {
-            return index != count;
+            return count != 0;
 
         }
 
         public Item next() {
-            if (index == count) {
+            if (count == 0) {
                 throw new NoSuchElementException("no more elements");
             }
 
-            return randomQueueCopy[index++];
+            int randInt = StdRandom.uniform(count);
+            Item returnItem = randomDequeCopy[randInt];
+            randomDequeCopy[randInt] = randomDequeCopy[--count];
+            return returnItem;
         }
     }
 
     public static void main(String[] args) {
         RandomizedQueue<Integer> d = new RandomizedQueue<>();
 
-        d.enqueue(0);
-        d.enqueue(1);
-        d.enqueue(2);
-        d.enqueue(3);
-        d.enqueue(4);
-        d.enqueue(5);
-        d.enqueue(6);
-        d.enqueue(7);
-        d.enqueue(8);
-        d.enqueue(9);
+        for (int i = 0; i < 64; i++) {
+            d.enqueue(i);
+        }
 
         Iterator<Integer> i1 = d.iterator();
-        Iterator<Integer> i2 = d.iterator();
 
         while (i1.hasNext()) {
             System.out.println("Iterator it " + i1.next());
-        }
-
-        while (i2.hasNext()) {
-            System.out.println("Iterator it2 " + i2.next());
         }
     }
 }
